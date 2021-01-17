@@ -1,0 +1,27 @@
+{
+  "name": "JS-sdkBox",
+  "version": "1.0.0",
+  "description": "记录一些纯JS的sdk对象",
+  "main": "gulpfile.js",
+  "dependencies": {
+    "del": "^6.0.0",
+    "gulp": "^4.0.2",
+    "gulp-typescript": "^6.0.0-alpha.1",
+    "typescript": "^4.1.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/laoxue/JS-sdkBox.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/laoxue/JS-sdkBox/issues"
+  },
+  "homepage": "https://github.com/laoxue/JS-sdkBox#readme"
+}
