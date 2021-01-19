@@ -10,91 +10,54 @@ class examModelSDK {
     win:object = window;
     doc:object = this.win.document;
     examList:object[] = []
+    examQuestion:object = {}
     wrongList:object[] = [];
     // 学员学号
-    userMis:string;
+    examTitle:string;
 
     wrongCount:number = 0; //错题
     fitCount:number  = 0; //对题
-    holeCount:number  = 100; //对题
+    holeCount:number  = 0; //全部题
 
     // 当前第几题
     examIndex = 0
 
 
     // 初始化考试人员
-    constructor(userNo:string){
-        this.userMis = userNo;
-        // console.log(this.userMis)
-        // 假数据
-        const dataJson = {
-            "data":[
-                {
-                    "title":"1.薛强是男孩么?",
-                    "type": "judgment",
-                    "choiceList" : [
-                        {
-                            "value": true
-                        },
-                        {
-                            "value": false
-                        }
-                    ],
-                    "anwser": true
-                },
-                {
-                    "title":"2.李四是男人还是女人？",
-                    "type": "single",
-                    "choiceList" : [
-                        {
-                            "value": "A.男人"
-                        },
-                        {
-                            "value": "B.女人"
-                        }
-                    ],
-                    "anwser": "A"
-                },
-                {
-                    "title":"3.我最喜欢吃什么？",
-                    "type": "multiple",
-                    "choiceList" : [
-                        {
-                            "value": "A.西瓜"
-                        },
-                        {
-                            "value": "B.菠萝"
-                        },
-                        {
-                            "value": "C.生菜"
-                        },
-                        {
-                            "value": "D.鳄鱼"
-                        }
-                    ],
-                    "anwser": "A,B,C"
-                }
-            ]
-        }
-
-        this.wrongList = dataJson.data;
-        if(this.wrongList.length !== 0) {
-            // 准备数据加载弹框
-            this.initData();
+    constructor(examtitle:string, objData:object){
+        this.examTitle = examtitle;
+        if(objData) {
+             // console.log(res.data)
+             this.wrongList = objData.data;
+             if(this.wrongList.length !== 0) {
+                 // 准备数据加载弹框
+                 this.holeCount = this.wrongList.length;
+                 this.initData();
+             } else {
+                 console.log('当前未有考试!')
+             }
         } else {
-            console.log('当前未有考试!')
+            this.fetchData('getExam', {
+                method: 'get',
+                data: {},
+                mode: 'cors'
+            })
+            .then((res) => {
+                // console.log(res.data)
+                this.wrongList = res.data;
+                if(this.wrongList.length !== 0) {
+                    // 准备数据加载弹框
+                    this.holeCount = this.wrongList.length;
+                    this.initData();
+                } else {
+                    console.log('当前未有考试!')
+                }
+            })
+            .catch(e => {
+                console.log(e)
+            })
         }
-        // this.fetchData('/getexam', {
-        //     method: 'get',
-        //     data: {},
-        //     mode: 'cors'
-        // })
-        // .then((data) => {
-        //     console.log(data)
-        // })
-        // .catch(e => {
-        //     console.log(e)
-        // })
+        
     }
     /**
    * @param void
@@ -112,22 +75,62 @@ class examModelSDK {
             default: [],
             watcher: item => {
               if (!item.length) {
-                this.removeElement('J_question_container_valid')
+                // this.removeElement('J_question_container_valid')
                 return
-              }!this.checkDOM('J_question_container_valid') && this.addValidButton()
+              }
+            //   !this.checkDOM('J_question_container_valid') && this.addValidButton()
             }
           }, {
             // 当前问题
-            value: 'examList',
+            value: 'examQuestion',
             default: {},
             watcher: item => {
               if (Object.keys(item).length) {
-                this.addExamContainer(this.examIndex);
+                // console.log(examQuestion)
+                console.log(this.examQuestion)
+                this.removeElement('exam_container')
+                this.addExamContainer(this.examQuestion);
                 return
               }
             }
-          }])
+          },{
+              //当前数量
+              value:'fitCount',
+              default: 0,
+              needInit: true,
+              watcher: item => {
+                //   alert('最新值'+item)
+                 this.doc.querySelector('.fitCount')?.innerHTML = `正确: ${item}`
+                //  this.addExamContainerFooter()
+              }
+          },{
+              //当前数量
+              value:'wrongCount',
+              default: 0,
+              needInit: true,
+              watcher: item => {
+                //   alert('最新值'+item)
+                 this.doc.querySelector('.wrongCount')?.innerHTML = `正确: ${item}`
+                //  this.addExamContainerFooter()
+              }
+
+          },{
+            //当前数量
+            value:'examIndex',
+            default: 0,
+            needInit: true,
+            watcher: item => {
+              //   alert('最新值'+item)
+             if (item === this.holeCount)  this.doc.querySelector('.exam_container').innerHTML = 
+             `
+             <p class="exam_result">您已经完成全部题目,正确${this.fitCount},错误${this.wrongCount}</p>
+             `
+              //  this.addExamContainerFooter()
+            }
+
+        }])
           this.examList = this.wrongList
+          this.examQuestion = this.examList[this.examIndex];
         
     }
     /**
@@ -145,14 +148,14 @@ class examModelSDK {
    * @return void
    * @desc 增加题目外框
    */
-    addExamContainer(index):void{
+    addExamContainer(obj):void{
         const examContainer = this.createElement('div');
         examContainer.className = 'exam_container';
         this.appendChild(this.doc.body, examContainer);
         // 增加头部
         this.addExamContainerHeader();
         // 增加题干部分
-        this.addExamContainerContent(index);
+        this.addExamContainerContent(obj);
         // 增加脚部
         this.addExamContainerFooter();
     }
@@ -165,9 +168,17 @@ class examModelSDK {
         const header = this.createElement('div');
         header.className = 'exam_container_header';
         const header_title = this.createElement('span');
+        const close_menu = this.createElement('span');
         header_title.className = 'exam_container_header_title'
-        header_title.innerHTML = '驾考宝典v1.0'
+        close_menu.className = "exam_container_close_menu"
+        header_title.innerHTML = this.examTitle;
+        close_menu.innerHTML = 'X';
+        close_menu.addEventListener('click',() => {
+            this.removeElement('exam_container');
+            this.removeElement('mask_dialog');
+        })
         this.appendChild(header, header_title);
+        this.appendChild(header, close_menu);
         this.appendChild(this.doc.getElementsByClassName('exam_container')[0], header);
     }
     /**
@@ -175,22 +186,22 @@ class examModelSDK {
    * @return void
    * @desc 增加题目题干部分
    */
-    addExamContainerContent(index):void{
+    addExamContainerContent(obj):void{
         const content = this.createElement('div');
         // const under = this.createElement('div');
         content.className = 'exam_container_content';
         // this.appendChild(content, under);
         this.appendChild(this.doc.getElementsByClassName('exam_container')[0], content);
         // 添加题目部分
-        this.addExamContainerContentTitle(index);
+        this.addExamContainerContentTitle(obj);
     }
     /**
    * @param void
    * @return void
    * @desc 增加题目
    */
-    addExamContainerContentTitle(index):void{
-        let data = this.examList[index];
+    addExamContainerContentTitle(obj):void{
+        let data = obj;
         // 创建题目类型 以及题目内容
         const topic = this.createElement('div');
         topic.className = 'exam_container_content_topic';
@@ -211,45 +222,71 @@ class examModelSDK {
         this.appendChild(topic,topicTitle)
         this.appendChild(this.doc.getElementsByClassName('exam_container_content')[0], topic);
         console.log('接下来添加题目')
-        this.addExamContainerContentAnwser(index);
+        this.addExamContainerContentAnwser(obj);
     }
     /**
    * @param void
    * @return void
    * @desc 增加题选项
    */
-    addExamContainerContentAnwser(index):void{
-        let data = this.examList[index].choiceList;
+    addExamContainerContentAnwser(obj):void{
+        let data = obj.choiceList;
         // 创建题目类型 以及题目内容
         const underAnwser = this.createElement('div');
         underAnwser.className = 'exam_container_content_under';
+        const underAnwserText = this.createElement('div');
+        underAnwserText.className = 'exam_container_content_under_text';
+        const underAnwserImage = this.createElement('div');
+        underAnwserImage.className = 'exam_container_content_under_image';
+        if (obj.hasImage) {
+            underAnwserImage.innerHTML = 
+            `
+            <img src="${obj.imgUrl}" width="130" height="130"/>
+            `
+        }
         const anwserList = data.map(item => {
             const tContainer = this.createElement('span');
             tContainer.className = 'exam_container_content_item';
-            if(this.examList[index].type === 'judgment') {
+            if(obj.type === 'judgment') {
                 tContainer.innerHTML = (item.value ? '正确' : '错误')
             } else {
                 tContainer.innerHTML = item.value;
             }
-            
+            let {className} = tContainer
             tContainer.addEventListener('click', () => {
-                if (this.examList[index].type === 'judgment') {
-                    tContainer.className = 'exam_container_content_item activeItem'
+                if (obj.type === 'judgment') {
+                   
+                     if (/active/.test(className)) {
+                         tContainer.className = 'exam_container_content_item'
+                     } else {
+                         tContainer.className = 'exam_container_content_item'
+                     }
                     console.log('答案:',item)
-                    if((tContainer.innerHTML === '正确') !== item.value) {
-                        alert('不对')
+                    if(item.value === obj.anwser) {
+                        // alert('答对了')
+                        this.fitCount ++;
+                        // alert(this.fitCount)
                     } else {
-                        alert('答对了')
+                        // alert('不对')
+                        this.wrongCount ++;
                     }
                 } 
-                if (this.examList[index].type === 'single') {
-                    if(item.innerHTML !== item.anwser) {
-                        alert('不对')
+                if (obj.type === 'single') {
+                    // alert('当前是单选题')
+                    if(item.value === obj.anwser) {
+                        // alert('答对了')
+                        this.fitCount ++;
+                        // alert(this.fitCount)
+                    } else {
+                        // alert('不对')
+                        this.wrongCount ++;
                     }
                 }
-                if(this.examList[index].type === 'multiple') {
+                if(obj.type === 'multiple') {
 
                 }
+                this.examIndex++;
+                this.examQuestion = this.examList[this.examIndex];
                 return 
             })
             return tContainer
@@ -257,10 +294,11 @@ class examModelSDK {
         console.log(anwserList)
         // this.appendChild(this.doc.getElementsByClassName('exam_container_content_topic')[0], anwserList[index]);
         anwserList.every(item => {
-            this.appendChild(underAnwser, item);
+            this.appendChild(underAnwserText, item);
             return true
-          })
-        
+        })
+        this.appendChild(underAnwser, underAnwserText);
+        this.appendChild(underAnwser, underAnwserImage);
         this.appendChild(this.doc.getElementsByClassName('exam_container_content')[0], underAnwser);
         
         
@@ -276,14 +314,17 @@ class examModelSDK {
         // 增加 进度 和记录 
         const wrongCount = this.createElement('div')
         wrongCount.innerHTML = `错误：${this.wrongCount}`
+        wrongCount.className = 'wrongCount'
         const fitCount = this.createElement('div');
+        fitCount.className = 'fitCount'
         fitCount.innerHTML = `正确：${this.fitCount}`
-        const proess = this.createElement('div');
-        proess.innerHTML = `剩余：${this.holeCount - this.fitCount}/${this.holeCount}`
+        const process = this.createElement('div');
+        process.className = 'process'
+        process.innerHTML = `剩余：${this.holeCount - (this.fitCount+this.wrongCount)}/${this.holeCount}`
         footer.className = 'exam_container_footer';
         this.appendChild(footer,wrongCount);
         this.appendChild(footer,fitCount);
-        this.appendChild(footer,proess);
+        this.appendChild(footer,process);
         this.appendChild(this.doc.getElementsByClassName('exam_container')[0], footer);
     }
     /**
@@ -421,6 +462,8 @@ class examModelSDK {
             width: 100%;
             background: #63a2c7;
             height: 2rem;
+            display:flex;
+            justify-content:space-between;
         }
         .exam_container_header_title{
             color:white;
@@ -430,18 +473,32 @@ class examModelSDK {
             margin-left: 0.5rem;
             font-weight: 800;
         }
+        .exam_container_close_menu{
+            color:white;
+            font-size:13px;
+            display: inline-block;
+            height: 2rem;
+            line-height:2rem;
+            width: 50px;
+            text-align: center;
+            cursor:pointer;
+        }
         .exam_container_content{
             height:16rem;
         }
         .exam_container_content_topic{
-            height:10rem;
+            height:5rem;
             display:flex;
+            align-items: center; 
             justify-content:flex-start;
         }
         .exam_container_content_topicType{
-            padding:0.5rem;
+            padding:0.1rem 1rem;
             height:1.5rem;
             margin-left: 5%;
+            border: 1px solid #37B5F8;
+            background-color: #37B5F8;
+            color: #fff;
         }
         .exam_container_content_topicTitle{
             height:1.5rem;
@@ -449,9 +506,21 @@ class examModelSDK {
             padding: 0.5rem;
         }
         .exam_container_content_under{
-            height:6rem;
+            height:11rem;
             display:flex;
-            justify-content:space-around;
+            flex-flow:row;
+            justify-content: space-between;
+            padding: 0 5%;
+        }
+        .exam_container_content_under_text{
+            height:11rem;
+            display:flex;
+            flex-flow:column;
+            width:50%;
+        }
+        .exam_container_content_under_image{
+            height:11rem;
+            width:50%;
         }
         .exam_container_content_item{
             height:2rem;
@@ -462,11 +531,28 @@ class examModelSDK {
             height:2rem;
             line-height:2rem;
             display:flex;
+            font-size:13px;
             justify-content:space-around;
         }
         .activeItem{
             background:red;
             color:white
+        }
+        .wrongCount{
+            color:red;
+        }
+        .fitCount{
+            color:green;
+        }
+        .process{
+            color:blue;
+        }
+        .exam_result{
+            height: 100%;
+            width: 100%;
+            line-height: 20rem;
+            text-align: center;
+            display: inline-block;
         }
         `
         this.appendChild(this.doc.head, node)
@@ -509,7 +595,7 @@ class examModelSDK {
         headers: {
             'Accept': 'application/json'
         },
-        credentials: 'include',
+        // credentials: 'include',
         method
         }
         url = url.substring(0, 1) === '/' ? url : '/' + url

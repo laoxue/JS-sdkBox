@@ -8,87 +8,53 @@
  */
 var examModelSDK = /** @class */ (function () {
     // 初始化考试人员
-    function examModelSDK(userNo) {
+    function examModelSDK(examtitle, objData) {
+        var _this = this;
         this.win = window;
         this.doc = this.win.document;
         this.examList = [];
+        this.examQuestion = {};
         this.wrongList = [];
         this.wrongCount = 0; //错题
         this.fitCount = 0; //对题
-        this.holeCount = 100; //对题
+        this.holeCount = 0; //全部题
         // 当前第几题
         this.examIndex = 0;
-        this.userMis = userNo;
-        // console.log(this.userMis)
-        // 假数据
-        var dataJson = {
-            "data": [
-                {
-                    "title": "1.薛强是男孩么?",
-                    "type": "judgment",
-                    "choiceList": [
-                        {
-                            "value": true
-                        },
-                        {
-                            "value": false
-                        }
-                    ],
-                    "anwser": true
-                },
-                {
-                    "title": "2.李四是男人还是女人？",
-                    "type": "single",
-                    "choiceList": [
-                        {
-                            "value": "A.男人"
-                        },
-                        {
-                            "value": "B.女人"
-                        }
-                    ],
-                    "anwser": "A"
-                },
-                {
-                    "title": "3.我最喜欢吃什么？",
-                    "type": "multiple",
-                    "choiceList": [
-                        {
-                            "value": "A.西瓜"
-                        },
-                        {
-                            "value": "B.菠萝"
-                        },
-                        {
-                            "value": "C.生菜"
-                        },
-                        {
-                            "value": "D.鳄鱼"
-                        }
-                    ],
-                    "anwser": "A,B,C"
-                }
-            ]
-        };
-        this.wrongList = dataJson.data;
-        if (this.wrongList.length !== 0) {
-            // 准备数据加载弹框
-            this.initData();
+        this.examTitle = examtitle;
+        if (objData) {
+            // console.log(res.data)
+            this.wrongList = objData.data;
+            if (this.wrongList.length !== 0) {
+                // 准备数据加载弹框
+                this.holeCount = this.wrongList.length;
+                this.initData();
+            }
+            else {
+                console.log('当前未有考试!');
+            }
         }
         else {
-            console.log('当前未有考试!');
+            this.fetchData('getExam', {
+                method: 'get',
+                data: {},
+                mode: 'cors'
+            })
+                .then(function (res) {
+                // console.log(res.data)
+                _this.wrongList = res.data;
+                if (_this.wrongList.length !== 0) {
+                    // 准备数据加载弹框
+                    _this.holeCount = _this.wrongList.length;
+                    _this.initData();
+                }
+                else {
+                    console.log('当前未有考试!');
+                }
+            })
+                .catch(function (e) {
+                console.log(e);
+            });
         }
-        // this.fetchData('/getexam', {
-        //     method: 'get',
-        //     data: {},
-        //     mode: 'cors'
-        // })
-        // .then((data) => {
-        //     console.log(data)
-        // })
-        // .catch(e => {
-        //     console.log(e)
-        // })
     }
     /**
    * @param void
@@ -107,23 +73,61 @@ var examModelSDK = /** @class */ (function () {
                 default: [],
                 watcher: function (item) {
                     if (!item.length) {
-                        _this.removeElement('J_question_container_valid');
+                        // this.removeElement('J_question_container_valid')
                         return;
                     }
-                    !_this.checkDOM('J_question_container_valid') && _this.addValidButton();
+                    //   !this.checkDOM('J_question_container_valid') && this.addValidButton()
                 }
             }, {
                 // 当前问题
-                value: 'examList',
+                value: 'examQuestion',
                 default: {},
                 watcher: function (item) {
                     if (Object.keys(item).length) {
-                        _this.addExamContainer(_this.examIndex);
+                        // console.log(examQuestion)
+                        console.log(_this.examQuestion);
+                        _this.removeElement('exam_container');
+                        _this.addExamContainer(_this.examQuestion);
                         return;
                     }
                 }
+            }, {
+                //当前数量
+                value: 'fitCount',
+                default: 0,
+                needInit: true,
+                watcher: function (item) {
+                    var _a;
+                    //   alert('最新值'+item)
+                    (_a = _this.doc.querySelector('.fitCount')) === null || _a === void 0 ? void 0 : _a.innerHTML = "\u6B63\u786E: " + item;
+                    //  this.addExamContainerFooter()
+                }
+            }, {
+                //当前数量
+                value: 'wrongCount',
+                default: 0,
+                needInit: true,
+                watcher: function (item) {
+                    var _a;
+                    //   alert('最新值'+item)
+                    (_a = _this.doc.querySelector('.wrongCount')) === null || _a === void 0 ? void 0 : _a.innerHTML = "\u6B63\u786E: " + item;
+                    //  this.addExamContainerFooter()
+                }
+            }, {
+                //当前数量
+                value: 'examIndex',
+                default: 0,
+                needInit: true,
+                watcher: function (item) {
+                    //   alert('最新值'+item)
+                    if (item === _this.holeCount)
+                        _this.doc.querySelector('.exam_container').innerHTML =
+                            "\n             <p class=\"exam_result\">\u60A8\u5DF2\u7ECF\u5B8C\u6210\u5168\u90E8\u9898\u76EE,\u6B63\u786E" + _this.fitCount + ",\u9519\u8BEF" + _this.wrongCount + "</p>\n             ";
+                    //  this.addExamContainerFooter()
+                }
             }]);
         this.examList = this.wrongList;
+        this.examQuestion = this.examList[this.examIndex];
     };
     /**
    * @param void
@@ -140,14 +144,14 @@ var examModelSDK = /** @class */ (function () {
    * @return void
    * @desc 增加题目外框
    */
-    examModelSDK.prototype.addExamContainer = function (index) {
+    examModelSDK.prototype.addExamContainer = function (obj) {
         var examContainer = this.createElement('div');
         examContainer.className = 'exam_container';
         this.appendChild(this.doc.body, examContainer);
         // 增加头部
         this.addExamContainerHeader();
         // 增加题干部分
-        this.addExamContainerContent(index);
+        this.addExamContainerContent(obj);
         // 增加脚部
         this.addExamContainerFooter();
     };
@@ -157,12 +161,21 @@ var examModelSDK = /** @class */ (function () {
    * @desc 增加题目头部
    */
     examModelSDK.prototype.addExamContainerHeader = function () {
+        var _this = this;
         var header = this.createElement('div');
         header.className = 'exam_container_header';
         var header_title = this.createElement('span');
+        var close_menu = this.createElement('span');
         header_title.className = 'exam_container_header_title';
-        header_title.innerHTML = '驾考宝典v1.0';
+        close_menu.className = "exam_container_close_menu";
+        header_title.innerHTML = this.examTitle;
+        close_menu.innerHTML = 'X';
+        close_menu.addEventListener('click', function () {
+            _this.removeElement('exam_container');
+            _this.removeElement('mask_dialog');
+        });
         this.appendChild(header, header_title);
+        this.appendChild(header, close_menu);
         this.appendChild(this.doc.getElementsByClassName('exam_container')[0], header);
     };
     /**
@@ -170,22 +183,22 @@ var examModelSDK = /** @class */ (function () {
    * @return void
    * @desc 增加题目题干部分
    */
-    examModelSDK.prototype.addExamContainerContent = function (index) {
+    examModelSDK.prototype.addExamContainerContent = function (obj) {
         var content = this.createElement('div');
         // const under = this.createElement('div');
         content.className = 'exam_container_content';
         // this.appendChild(content, under);
         this.appendChild(this.doc.getElementsByClassName('exam_container')[0], content);
         // 添加题目部分
-        this.addExamContainerContentTitle(index);
+        this.addExamContainerContentTitle(obj);
     };
     /**
    * @param void
    * @return void
    * @desc 增加题目
    */
-    examModelSDK.prototype.addExamContainerContentTitle = function (index) {
-        var data = this.examList[index];
+    examModelSDK.prototype.addExamContainerContentTitle = function (obj) {
+        var data = obj;
         // 创建题目类型 以及题目内容
         var topic = this.createElement('div');
         topic.className = 'exam_container_content_topic';
@@ -207,46 +220,72 @@ var examModelSDK = /** @class */ (function () {
         this.appendChild(topic, topicTitle);
         this.appendChild(this.doc.getElementsByClassName('exam_container_content')[0], topic);
         console.log('接下来添加题目');
-        this.addExamContainerContentAnwser(index);
+        this.addExamContainerContentAnwser(obj);
     };
     /**
    * @param void
    * @return void
    * @desc 增加题选项
    */
-    examModelSDK.prototype.addExamContainerContentAnwser = function (index) {
+    examModelSDK.prototype.addExamContainerContentAnwser = function (obj) {
         var _this = this;
-        var data = this.examList[index].choiceList;
+        var data = obj.choiceList;
         // 创建题目类型 以及题目内容
         var underAnwser = this.createElement('div');
         underAnwser.className = 'exam_container_content_under';
+        var underAnwserText = this.createElement('div');
+        underAnwserText.className = 'exam_container_content_under_text';
+        var underAnwserImage = this.createElement('div');
+        underAnwserImage.className = 'exam_container_content_under_image';
+        if (obj.hasImage) {
+            underAnwserImage.innerHTML =
+                "\n            <img src=\"" + obj.imgUrl + "\" width=\"130\" height=\"130\"/>\n            ";
+        }
         var anwserList = data.map(function (item) {
             var tContainer = _this.createElement('span');
             tContainer.className = 'exam_container_content_item';
-            if (_this.examList[index].type === 'judgment') {
+            if (obj.type === 'judgment') {
                 tContainer.innerHTML = (item.value ? '正确' : '错误');
             }
             else {
                 tContainer.innerHTML = item.value;
             }
+            var className = tContainer.className;
             tContainer.addEventListener('click', function () {
-                if (_this.examList[index].type === 'judgment') {
-                    tContainer.className = 'exam_container_content_item activeItem';
-                    console.log('答案:', item);
-                    if ((tContainer.innerHTML === '正确') !== item.value) {
-                        alert('不对');
+                if (obj.type === 'judgment') {
+                    if (/active/.test(className)) {
+                        tContainer.className = 'exam_container_content_item';
                     }
                     else {
-                        alert('答对了');
+                        tContainer.className = 'exam_container_content_item';
+                    }
+                    console.log('答案:', item);
+                    if (item.value === obj.anwser) {
+                        // alert('答对了')
+                        _this.fitCount++;
+                        // alert(this.fitCount)
+                    }
+                    else {
+                        // alert('不对')
+                        _this.wrongCount++;
                     }
                 }
-                if (_this.examList[index].type === 'single') {
-                    if (item.innerHTML !== item.anwser) {
-                        alert('不对');
+                if (obj.type === 'single') {
+                    // alert('当前是单选题')
+                    if (item.value === obj.anwser) {
+                        // alert('答对了')
+                        _this.fitCount++;
+                        // alert(this.fitCount)
+                    }
+                    else {
+                        // alert('不对')
+                        _this.wrongCount++;
                     }
                 }
-                if (_this.examList[index].type === 'multiple') {
+                if (obj.type === 'multiple') {
                 }
+                _this.examIndex++;
+                _this.examQuestion = _this.examList[_this.examIndex];
                 return;
             });
             return tContainer;
@@ -254,9 +293,11 @@ var examModelSDK = /** @class */ (function () {
         console.log(anwserList);
         // this.appendChild(this.doc.getElementsByClassName('exam_container_content_topic')[0], anwserList[index]);
         anwserList.every(function (item) {
-            _this.appendChild(underAnwser, item);
+            _this.appendChild(underAnwserText, item);
             return true;
         });
+        this.appendChild(underAnwser, underAnwserText);
+        this.appendChild(underAnwser, underAnwserImage);
         this.appendChild(this.doc.getElementsByClassName('exam_container_content')[0], underAnwser);
     };
     /**
@@ -269,14 +310,17 @@ var examModelSDK = /** @class */ (function () {
         // 增加 进度 和记录 
         var wrongCount = this.createElement('div');
         wrongCount.innerHTML = "\u9519\u8BEF\uFF1A" + this.wrongCount;
+        wrongCount.className = 'wrongCount';
         var fitCount = this.createElement('div');
+        fitCount.className = 'fitCount';
         fitCount.innerHTML = "\u6B63\u786E\uFF1A" + this.fitCount;
-        var proess = this.createElement('div');
-        proess.innerHTML = "\u5269\u4F59\uFF1A" + (this.holeCount - this.fitCount) + "/" + this.holeCount;
+        var process = this.createElement('div');
+        process.className = 'process';
+        process.innerHTML = "\u5269\u4F59\uFF1A" + (this.holeCount - (this.fitCount + this.wrongCount)) + "/" + this.holeCount;
         footer.className = 'exam_container_footer';
         this.appendChild(footer, wrongCount);
         this.appendChild(footer, fitCount);
-        this.appendChild(footer, proess);
+        this.appendChild(footer, process);
         this.appendChild(this.doc.getElementsByClassName('exam_container')[0], footer);
     };
     /**
@@ -297,7 +341,7 @@ var examModelSDK = /** @class */ (function () {
         var themeColor = '#6096EA';
         node.type = 'text/css';
         node.innerHTML =
-            "\n        @keyframes scale {\n            form {\n            transform:scale(0)\n            }\n            to {\n            transform: scale(1)\n            }\n        }\n        @keyframes slideIn {\n            0% {\n            opacity: 0;\n            transform: translateY(500px)\n        }\n        100% {\n            opacity: 1;\n            transform: translateY(0px)\n        }\n        }\n        @keyframes fadeIn {\n            0% {\n            opacity: 0;\n            height: 0px;\n            transform: translateX(170px)\n        }\n        50% {\n            opacity: 0;\n            height: 32px;\n            transform: translateX(170px)\n        }\n        100% {\n            opacity: 1;\n            height: 32px;\n            transform: translateX(70px)\n        }\n        }\n        @keyframes fadeInContent {\n        0% {\n            opacity: 0;\n        }\n        100% {\n            opacity: 1;\n        }\n        }\n        @keyframes loading {\n        0% {\n            opacity: 0;\n        }\n        40% {\n            opacity: 0.5;\n        }\n        70% {\n            opacity: 1;\n        }\n        100% {\n            opacity: 0.5;\n        }\n        }\n        @keyframes insert {\n        0% {\n            height: 0;\n            opacity: 0;\n        }\n        80% {\n            height: auto;\n        }\n        100% {\n            opacity: 1;\n            }\n        }\n        p{\n            margin:0;\n            padding:0;\n        }\n        .mask_dialog {\n            position: fixed;\n            display: flex;\n            flex: 1;\n            justify-content: center;\n            align-items: center;\n            z-index: 9999999;\n            left: 0;\n            top: 0;\n            width: 100%;\n            height: 100%;\n            background: rgba(0, 0, 0, 0.9);\n            transform: scale(0);\n            animation-name: scale;\n            animation-delay: 0.1s;\n            animation-duration: 0.2s;\n            animation-fill-mode: forwards;\n            animation-timing-function: ease-in-out;\n            animation-iteration-count: 1;\n        }\n\n        .exam_container{\n            position: fixed;\n            height: 20rem;\n            width: 50rem;\n            background: white;\n            z-index: 10000000;\n            margin-left: -25rem;\n            margin-top: -10rem;\n            left: 50%;\n            top: 50%;\n            transform: scale(0);\n            animation-name: scale;\n            animation-delay: 0.1s;\n            animation-duration: 0.2s;\n            animation-fill-mode: forwards;\n            animation-timing-function: ease-in-out;\n            animation-iteration-count: 1;\n        }\n        .exam_container_header{\n            width: 100%;\n            background: #63a2c7;\n            height: 2rem;\n        }\n        .exam_container_header_title{\n            color:white;\n            font-size: 15px;\n            font-family: cursive;\n            line-height: 2rem;\n            margin-left: 0.5rem;\n            font-weight: 800;\n        }\n        .exam_container_content{\n            height:16rem;\n        }\n        .exam_container_content_topic{\n            height:10rem;\n            display:flex;\n            justify-content:flex-start;\n        }\n        .exam_container_content_topicType{\n            padding:0.5rem;\n            height:1.5rem;\n            margin-left: 5%;\n        }\n        .exam_container_content_topicTitle{\n            height:1.5rem;\n            line-height:1.5rem;\n            padding: 0.5rem;\n        }\n        .exam_container_content_under{\n            height:6rem;\n            display:flex;\n            justify-content:space-around;\n        }\n        .exam_container_content_item{\n            height:2rem;\n            line-height:2rem;\n            cursor:pointer;\n        }\n        .exam_container_footer{\n            height:2rem;\n            line-height:2rem;\n            display:flex;\n            justify-content:space-around;\n        }\n        .activeItem{\n            background:red;\n            color:white\n        }\n        ";
+            "\n        @keyframes scale {\n            form {\n            transform:scale(0)\n            }\n            to {\n            transform: scale(1)\n            }\n        }\n        @keyframes slideIn {\n            0% {\n            opacity: 0;\n            transform: translateY(500px)\n        }\n        100% {\n            opacity: 1;\n            transform: translateY(0px)\n        }\n        }\n        @keyframes fadeIn {\n            0% {\n            opacity: 0;\n            height: 0px;\n            transform: translateX(170px)\n        }\n        50% {\n            opacity: 0;\n            height: 32px;\n            transform: translateX(170px)\n        }\n        100% {\n            opacity: 1;\n            height: 32px;\n            transform: translateX(70px)\n        }\n        }\n        @keyframes fadeInContent {\n        0% {\n            opacity: 0;\n        }\n        100% {\n            opacity: 1;\n        }\n        }\n        @keyframes loading {\n        0% {\n            opacity: 0;\n        }\n        40% {\n            opacity: 0.5;\n        }\n        70% {\n            opacity: 1;\n        }\n        100% {\n            opacity: 0.5;\n        }\n        }\n        @keyframes insert {\n        0% {\n            height: 0;\n            opacity: 0;\n        }\n        80% {\n            height: auto;\n        }\n        100% {\n            opacity: 1;\n            }\n        }\n        p{\n            margin:0;\n            padding:0;\n        }\n        .mask_dialog {\n            position: fixed;\n            display: flex;\n            flex: 1;\n            justify-content: center;\n            align-items: center;\n            z-index: 9999999;\n            left: 0;\n            top: 0;\n            width: 100%;\n            height: 100%;\n            background: rgba(0, 0, 0, 0.9);\n            transform: scale(0);\n            animation-name: scale;\n            animation-delay: 0.1s;\n            animation-duration: 0.2s;\n            animation-fill-mode: forwards;\n            animation-timing-function: ease-in-out;\n            animation-iteration-count: 1;\n        }\n\n        .exam_container{\n            position: fixed;\n            height: 20rem;\n            width: 50rem;\n            background: white;\n            z-index: 10000000;\n            margin-left: -25rem;\n            margin-top: -10rem;\n            left: 50%;\n            top: 50%;\n            transform: scale(0);\n            animation-name: scale;\n            animation-delay: 0.1s;\n            animation-duration: 0.2s;\n            animation-fill-mode: forwards;\n            animation-timing-function: ease-in-out;\n            animation-iteration-count: 1;\n        }\n        .exam_container_header{\n            width: 100%;\n            background: #63a2c7;\n            height: 2rem;\n            display:flex;\n            justify-content:space-between;\n        }\n        .exam_container_header_title{\n            color:white;\n            font-size: 15px;\n            font-family: cursive;\n            line-height: 2rem;\n            margin-left: 0.5rem;\n            font-weight: 800;\n        }\n        .exam_container_close_menu{\n            color:white;\n            font-size:13px;\n            display: inline-block;\n            height: 2rem;\n            line-height:2rem;\n            width: 50px;\n            text-align: center;\n            cursor:pointer;\n        }\n        .exam_container_content{\n            height:16rem;\n        }\n        .exam_container_content_topic{\n            height:5rem;\n            display:flex;\n            align-items: center; \n            justify-content:flex-start;\n        }\n        .exam_container_content_topicType{\n            padding:0.1rem 1rem;\n            height:1.5rem;\n            margin-left: 5%;\n            border: 1px solid #37B5F8;\n            background-color: #37B5F8;\n            color: #fff;\n        }\n        .exam_container_content_topicTitle{\n            height:1.5rem;\n            line-height:1.5rem;\n            padding: 0.5rem;\n        }\n        .exam_container_content_under{\n            height:11rem;\n            display:flex;\n            flex-flow:row;\n            justify-content: space-between;\n            padding: 0 5%;\n        }\n        .exam_container_content_under_text{\n            height:11rem;\n            display:flex;\n            flex-flow:column;\n            width:50%;\n        }\n        .exam_container_content_under_image{\n            height:11rem;\n            width:50%;\n        }\n        .exam_container_content_item{\n            height:2rem;\n            line-height:2rem;\n            cursor:pointer;\n        }\n        .exam_container_footer{\n            height:2rem;\n            line-height:2rem;\n            display:flex;\n            font-size:13px;\n            justify-content:space-around;\n        }\n        .activeItem{\n            background:red;\n            color:white\n        }\n        .wrongCount{\n            color:red;\n        }\n        .fitCount{\n            color:green;\n        }\n        .process{\n            color:blue;\n        }\n        .exam_result{\n            height: 100%;\n            width: 100%;\n            line-height: 20rem;\n            text-align: center;\n            display: inline-block;\n        }\n        ";
         this.appendChild(this.doc.head, node);
     };
     /**
@@ -337,7 +381,7 @@ var examModelSDK = /** @class */ (function () {
             headers: {
                 'Accept': 'application/json'
             },
-            credentials: 'include',
+            // credentials: 'include',
             method: method
         };
         url = url.substring(0, 1) === '/' ? url : '/' + url;

@@ -3,13 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>js-SDK</title>
+    <title>js-SDK 考试</title>
 </head>
 <body>
-    
+    <button onclick="showExam()">点击我弹出考试!</button>
 </body>
+<script src="./dist/visualData.json"></script>
 <script src="./dist/examModel-sdk.js"></script>
 <script>
-    let exam = new examModelSDK('xueq');
+    function showExam(){
+        // 一参为考试名字，二参为假数据
+        let exam = new examModelSDK('阿强创建的考试',visualDom);
+    }
 </script>
 </html>
