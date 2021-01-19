@@ -9,7 +9,7 @@
 
 button onclick="fn()">点击我弹出考试!</button> 上
 
-// 2.创建sdk对象
+// 2.创建sdk对象 sdk内封装了获取接口数据的fetch方法 这边方便演示使用文件中的json数据 二参不传默认使用fetch调用接口获取考试数据
 function showExam () {
     // 一参为考试名字，二参为假数据
     let exam = new examModelSDK('阿强创建的考试',visualDom);
