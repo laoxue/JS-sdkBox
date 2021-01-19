@@ -2,6 +2,7 @@
     "files": ["src/*.ts"],
     "compilerOptions": {
         "noImplicitAny": true,
+        "strict":false,
         "target": "ES5",
         "skipLibCheck": true,
 		"allowSyntheticDefaultImports": true

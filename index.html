@@ -7,13 +7,16 @@
 </head>
 <body>
     <button onclick="showExam()">点击我弹出考试!</button>
+    <div id="videoDom" style="width:500px;height:220px;border: 1px solid gray;margin-top: 20px;text-align: center;line-height: 220px;">
+        <video src="C://Users/admin/Pictures/项目上传/copy.mp4"></video>
+    </div>
 </body>
-<script src="./dist/visualData.json"></script>
-<script src="./dist/examModel-sdk.js"></script>
+<!-- <script src="./dist/visualData.json"></script> -->
+<!-- 考试sdk -->
+<!-- <script src="./dist/examModel-sdk.js"></script> -->
+<!-- 弹幕sdk -->
+<script src="./dist/barrageModel-sdk.js"></script>
 <script>
-    function showExam(){
-        // 一参为考试名字，二参为假数据
-        let exam = new examModelSDK('阿强创建的考试',visualDom);
-    }
+    let exam = new barrageModelSDK(document.getElementById('videoDom'));
 </script>
 </html>

@@ -2,13 +2,15 @@
  * examModel-sdk.js
  * @author laoxue
  * @time 2020-01-15
- * @param { userNo 账号 }
+ * @param { examtitle 考试名称 }
  * @return examModel-sdk instance
  * @desc 考试模块sdk
  */
+
+
 class examModelSDK {
-    win:object = window;
-    doc:object = this.win.document;
+    win:any = window;
+    doc:any = this.win.document;
     examList:object[] = []
     examQuestion:object = {}
     wrongList:object[] = [];
@@ -24,18 +26,18 @@ class examModelSDK {
 
 
     // 初始化考试人员
-    constructor(examtitle:string, objData:object){
+    constructor(examtitle:string, objData:any){
         this.examTitle = examtitle;
         if(objData) {
              // console.log(res.data)
-             this.wrongList = objData.data;
-             if(this.wrongList.length !== 0) {
+            this.wrongList = objData.data;
+            if(this.wrongList.length !== 0) {
                  // 准备数据加载弹框
-                 this.holeCount = this.wrongList.length;
-                 this.initData();
-             } else {
-                 console.log('当前未有考试!')
-             }
+                this.holeCount = this.wrongList.length;
+                this.initData();
+            } else {
+                console.log('当前未有考试!')
+            }
         } else {
             this.fetchData('getExam', {
                 method: 'get',
@@ -73,8 +75,8 @@ class examModelSDK {
             // 已选择列表
             value: 'selectList',
             default: [],
-            watcher: item => {
-              if (!item.length) {
+            watcher: (item:any) => {
+            if (!item.length) {
                 // this.removeElement('J_question_container_valid')
                 return
               }
@@ -84,42 +86,44 @@ class examModelSDK {
             // 当前问题
             value: 'examQuestion',
             default: {},
-            watcher: item => {
+            watcher: (item:any) => {
               if (Object.keys(item).length) {
                 // console.log(examQuestion)
                 console.log(this.examQuestion)
-                this.removeElement('exam_container')
+                this.removeElement('exam_container',true)
                 this.addExamContainer(this.examQuestion);
                 return
               }
             }
           },{
               //当前数量
-              value:'fitCount',
-              default: 0,
-              needInit: true,
-              watcher: item => {
+            value:'fitCount',
+            default: 0,
+            needInit: true,
+            watcher: (item:any) => {
                 //   alert('最新值'+item)
-                 this.doc.querySelector('.fitCount')?.innerHTML = `正确: ${item}`
+                const fitCount = this.doc.querySelector('.fitCount')
+                if(fitCount) fitCount.innerHTML = `正确: ${item}`
+                
                 //  this.addExamContainerFooter()
-              }
-          },{
+            }
+        },{
               //当前数量
-              value:'wrongCount',
-              default: 0,
-              needInit: true,
-              watcher: item => {
+            value:'wrongCount',
+            default: 0,
+            needInit: true,
+            watcher: (item:any) => {
                 //   alert('最新值'+item)
-                 this.doc.querySelector('.wrongCount')?.innerHTML = `正确: ${item}`
-                //  this.addExamContainerFooter()
-              }
+                const wrongCount = this.doc.querySelector('.wrongCount')
+                if (wrongCount) wrongCount.innerHTML = `正确: ${item}`
+            }
 
-          },{
+        },{
             //当前数量
             value:'examIndex',
             default: 0,
             needInit: true,
-            watcher: item => {
+            watcher: (item:any) => {
               //   alert('最新值'+item)
              if (item === this.holeCount)  this.doc.querySelector('.exam_container').innerHTML = 
              `
@@ -139,7 +143,7 @@ class examModelSDK {
    * @desc 创建灰屏蒙版dom
    */
     addMask():void{
-        const maskDom = this.createElement('div');
+        const maskDom:any = this.createElement('div');
         maskDom.className = 'mask_dialog';
         this.appendChild(this.doc.body, maskDom);
     }
@@ -148,8 +152,8 @@ class examModelSDK {
    * @return void
    * @desc 增加题目外框
    */
-    addExamContainer(obj):void{
-        const examContainer = this.createElement('div');
+    addExamContainer(obj:any):void{
+        const examContainer:any = this.createElement('div');
         examContainer.className = 'exam_container';
         this.appendChild(this.doc.body, examContainer);
         // 增加头部
@@ -165,17 +169,17 @@ class examModelSDK {
    * @desc 增加题目头部
    */
     addExamContainerHeader():void{
-        const header = this.createElement('div');
+        const header:any = this.createElement('div');
         header.className = 'exam_container_header';
-        const header_title = this.createElement('span');
-        const close_menu = this.createElement('span');
+        const header_title:any = this.createElement('span');
+        const close_menu:any = this.createElement('span');
         header_title.className = 'exam_container_header_title'
         close_menu.className = "exam_container_close_menu"
         header_title.innerHTML = this.examTitle;
         close_menu.innerHTML = 'X';
         close_menu.addEventListener('click',() => {
-            this.removeElement('exam_container');
-            this.removeElement('mask_dialog');
+            this.removeElement('exam_container',true);
+            this.removeElement('mask_dialog',true);
         })
         this.appendChild(header, header_title);
         this.appendChild(header, close_menu);
@@ -186,8 +190,8 @@ class examModelSDK {
    * @return void
    * @desc 增加题目题干部分
    */
-    addExamContainerContent(obj):void{
-        const content = this.createElement('div');
+    addExamContainerContent(obj:any):void{
+        const content:any = this.createElement('div');
         // const under = this.createElement('div');
         content.className = 'exam_container_content';
         // this.appendChild(content, under);
@@ -200,13 +204,13 @@ class examModelSDK {
    * @return void
    * @desc 增加题目
    */
-    addExamContainerContentTitle(obj):void{
+    addExamContainerContentTitle(obj:any):void{
         let data = obj;
         // 创建题目类型 以及题目内容
-        const topic = this.createElement('div');
+        const topic:any = this.createElement('div');
         topic.className = 'exam_container_content_topic';
-        const topicType = this.createElement('span');
-        const topicTitle = this.createElement('span');
+        const topicType:any = this.createElement('span');
+        const topicTitle:any = this.createElement('span');
         topicTitle.innerHTML = data.title
         topicType.className = 'exam_container_content_topicType';
         topicTitle.className = 'exam_container_content_topicTitle';
@@ -229,14 +233,14 @@ class examModelSDK {
    * @return void
    * @desc 增加题选项
    */
-    addExamContainerContentAnwser(obj):void{
+    addExamContainerContentAnwser(obj:any):void{
         let data = obj.choiceList;
         // 创建题目类型 以及题目内容
-        const underAnwser = this.createElement('div');
+        const underAnwser:any = this.createElement('div');
         underAnwser.className = 'exam_container_content_under';
-        const underAnwserText = this.createElement('div');
+        const underAnwserText:any = this.createElement('div');
         underAnwserText.className = 'exam_container_content_under_text';
-        const underAnwserImage = this.createElement('div');
+        const underAnwserImage:any = this.createElement('div');
         underAnwserImage.className = 'exam_container_content_under_image';
         if (obj.hasImage) {
             underAnwserImage.innerHTML = 
@@ -244,8 +248,8 @@ class examModelSDK {
             <img src="${obj.imgUrl}" width="130" height="130"/>
             `
         }
-        const anwserList = data.map(item => {
-            const tContainer = this.createElement('span');
+        const anwserList = data.map((item:any) => {
+            const tContainer:any = this.createElement('span');
             tContainer.className = 'exam_container_content_item';
             if(obj.type === 'judgment') {
                 tContainer.innerHTML = (item.value ? '正确' : '错误')
@@ -293,7 +297,7 @@ class examModelSDK {
         })
         console.log(anwserList)
         // this.appendChild(this.doc.getElementsByClassName('exam_container_content_topic')[0], anwserList[index]);
-        anwserList.every(item => {
+        anwserList.every((item:any) => {
             this.appendChild(underAnwserText, item);
             return true
         })
@@ -310,15 +314,15 @@ class examModelSDK {
    * @desc 增加题目脚部
    */
     addExamContainerFooter():void{
-        const footer = this.createElement('div');
+        const footer:any = this.createElement('div');
         // 增加 进度 和记录 
-        const wrongCount = this.createElement('div')
+        const wrongCount:any = this.createElement('div')
         wrongCount.innerHTML = `错误：${this.wrongCount}`
         wrongCount.className = 'wrongCount'
-        const fitCount = this.createElement('div');
+        const fitCount:any = this.createElement('div');
         fitCount.className = 'fitCount'
         fitCount.innerHTML = `正确：${this.fitCount}`
-        const process = this.createElement('div');
+        const process:any = this.createElement('div');
         process.className = 'process'
         process.innerHTML = `剩余：${this.holeCount - (this.fitCount+this.wrongCount)}/${this.holeCount}`
         footer.className = 'exam_container_footer';
@@ -332,7 +336,7 @@ class examModelSDK {
    * @return HTML-element
    * @desc 创建DOM
    */
-    createElement(type) :object{
+    createElement(type:any) :object{
         return this.doc.createElement(type);
     }
     /**
@@ -341,7 +345,7 @@ class examModelSDK {
    * @desc 在头部增加CSS样式
    */
     addCss() :void{
-        const node = this.createElement('style');
+        const node:any = this.createElement('style');
         const themeColor = '#6096EA';
         node.type = 'text/css';
         node.innerHTML = 
@@ -563,7 +567,7 @@ class examModelSDK {
    * @return void
    * @desc 子级dom插入父级dom
    */
-    appendChild(container,target) :void{
+    appendChild(container:any,target:any) :void{
         container.appendChild(target);
     }
     /**
@@ -572,7 +576,7 @@ class examModelSDK {
    * @return void
    * @desc 插入兄弟节点
    */
-    insertBefore(container, from, target) :void{
+    insertBefore(container:any, from:any, target:any) :void{
         container.insertBefore(target, from)
     }
     /**
@@ -580,7 +584,7 @@ class examModelSDK {
    * @return promise fetch
    * @desc ajax请求
    */
-    fetchData(url, config = {
+    fetchData(url:string, config:any = {
         method: 'get',
         data: {},
         mode: 'cors'
@@ -606,12 +610,12 @@ class examModelSDK {
         }
         t = t.slice(0, -1)
         url += `?${t}`
-        defaultFetchConfig = Object.assign({}, defaultFetchConfig, {
+        defaultFetchConfig = (<any>Object).assign({}, defaultFetchConfig, {
             body: undefined
         })
         } else if (method.toLowerCase() == 'post') {
         let body = JSON.stringify(data)
-        defaultFetchConfig = Object.assign({}, defaultFetchConfig, {
+        defaultFetchConfig = (<any>Object).assign({}, defaultFetchConfig, {
             body
         })
         }
@@ -640,9 +644,9 @@ class examModelSDK {
    * ------ ↓ ---------- ↓ ------
    * ----- view ------- ← -------
    */
-    definePropertyProps(items) {
-        const template = {}
-        items.every(item => {
+    definePropertyProps(items:any) {
+        const template:any = {}
+        items.every((item:any) => {
         template[item.value] = item.default
         if (item.needInit) item.watcher && item.watcher(item.default)
         Object.defineProperty(this, item.value, {
@@ -665,7 +669,7 @@ class examModelSDK {
    * @return void
    * @desc 通过className 移除dom元素
    */
-    removeElement(className, deep) :void{
+    removeElement(className:any, deep?:any) :void{
         if (!className) return
         let t = this.doc.getElementsByClassName(className)
         if (!t.length) return
@@ -687,7 +691,7 @@ class examModelSDK {
    * @return boolean
    * @desc check data type is @type
    */
-    typeof (data, type) {
+    typeof (data:any, type?:any) {
         return type ? Object.prototype.toString.call(data).slice(8, -1).toLowerCase() === type.toLowerCase() : Object.prototype.toString.call(data).slice(8, -1).toLowerCase()
     }      
     /**
@@ -696,7 +700,7 @@ class examModelSDK {
    * @return boolean
    * @desc check @from and @to is equal
    */
-    isEquel(form, to) {
+    isEquel(form:any, to:any) {
         // form to 类型不一致直接返回
         if (this.typeof(form) !== this.typeof(to)) return false
         // 数组对比toString

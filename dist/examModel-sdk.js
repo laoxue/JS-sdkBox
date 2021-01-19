@@ -2,7 +2,7 @@
  * examModel-sdk.js
  * @author laoxue
  * @time 2020-01-15
- * @param { userNo 账号 }
+ * @param { examtitle 考试名称 }
  * @return examModel-sdk instance
  * @desc 考试模块sdk
  */
@@ -86,7 +86,7 @@ var examModelSDK = /** @class */ (function () {
                     if (Object.keys(item).length) {
                         // console.log(examQuestion)
                         console.log(_this.examQuestion);
-                        _this.removeElement('exam_container');
+                        _this.removeElement('exam_container', true);
                         _this.addExamContainer(_this.examQuestion);
                         return;
                     }
@@ -97,9 +97,10 @@ var examModelSDK = /** @class */ (function () {
                 default: 0,
                 needInit: true,
                 watcher: function (item) {
-                    var _a;
                     //   alert('最新值'+item)
-                    (_a = _this.doc.querySelector('.fitCount')) === null || _a === void 0 ? void 0 : _a.innerHTML = "\u6B63\u786E: " + item;
+                    var fitCount = _this.doc.querySelector('.fitCount');
+                    if (fitCount)
+                        fitCount.innerHTML = "\u6B63\u786E: " + item;
                     //  this.addExamContainerFooter()
                 }
             }, {
@@ -108,10 +109,10 @@ var examModelSDK = /** @class */ (function () {
                 default: 0,
                 needInit: true,
                 watcher: function (item) {
-                    var _a;
                     //   alert('最新值'+item)
-                    (_a = _this.doc.querySelector('.wrongCount')) === null || _a === void 0 ? void 0 : _a.innerHTML = "\u6B63\u786E: " + item;
-                    //  this.addExamContainerFooter()
+                    var wrongCount = _this.doc.querySelector('.wrongCount');
+                    if (wrongCount)
+                        wrongCount.innerHTML = "\u6B63\u786E: " + item;
                 }
             }, {
                 //当前数量
@@ -171,8 +172,8 @@ var examModelSDK = /** @class */ (function () {
         header_title.innerHTML = this.examTitle;
         close_menu.innerHTML = 'X';
         close_menu.addEventListener('click', function () {
-            _this.removeElement('exam_container');
-            _this.removeElement('mask_dialog');
+            _this.removeElement('exam_container', true);
+            _this.removeElement('mask_dialog', true);
         });
         this.appendChild(header, header_title);
         this.appendChild(header, close_menu);
