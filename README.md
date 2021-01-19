@@ -18,4 +18,8 @@ function showExam () {
 演示DEMO：
 
 
-<a href="http://htmlpreview.github.io/?https://github.com/laoxue/JS-sdkBox/blob/master/index.html">点我开始考试</a>
+<a href="http://aladjs.cn/index.html">考试sdk</a>
+
+2.弹幕SDK 
+
+填坑中...
