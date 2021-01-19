@@ -17,4 +17,5 @@ function showExam () {
 ```
 演示DEMO：
 
-<a href="./index.html">点我开始考试</a>
+
+<a href="[./index.html](http://htmlpreview.github.io/?https://github.com/laoxue/JS-sdkBox/blob/master/index.html)">点我开始考试</a>
